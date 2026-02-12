@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control LED | Node.JS</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Tambahkan link font Ubuntu -->
+    <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
+    <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet"> -->
+</head>
+<body>
+    <!-- Header Pindah ke Atas -->
+    <header>
+        <h1>LEDs Control</h1>
+        <h3>Microcontroller ATMega 328p | Controlled by Web-APP Node.JS</h3>
+    </header>
+
+    <!-- Tambahkan Konten Utama -->
+    <main>
+        <div class="buttons-container">
+            <button id="led1-toggle" data-status="off">
+                <img id="led1-icon" src="lamp off.png" alt="LED 1 Mati">
+                <span>LED 1 OFF</span>
+            </button>
+            <button id="led2-toggle" data-status="off">
+                <img id="led2-icon" src="lamp off.png" alt="LED 2 Mati">
+                <span>LED 2 OFF</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- Tambahkan Informasi Tambahan -->
+    <footer>
+        <p>Made with ❤ by Muhammad Lutfi Nur Anendi</p>
+        <p>0623 3032 0678</p>
+        <p>3 ED</p>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
