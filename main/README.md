@@ -1,13 +1,19 @@
-# Program Arduino - Kontrol 2 LED via Serial
+# Program Arduino — Kontrol 2 LED via Serial
 
-## Board Setup (MiniCore)
+Firmware ATmega328P untuk menerima perintah dari Node.js via serial UART. Menyalakan/mematikan 2 LED berdasarkan perintah dari web.
 
-- **Board package:** MiniCore (`https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json`)
-- **Board:** ATmega328/P/PA/A/PB
-- **Clock:** External 16MHz crystal
-- **BOD:** 2.7V (recommended)
+## Board Setup
 
-### Cara Install
+Dapat menggunakan **Arduino Uno** atau **MiniCore** dengan konfigurasi:
+
+| Parameter | Nilai |
+|---|---|
+| Board package | MiniCore / Arduino Uno |
+| Board | ATmega328P |
+| Clock | External 16 MHz crystal |
+| BOD | 2.7V (MiniCore, opsional) |
+
+### Cara Install MiniCore
 
 1. Arduino IDE → File → Preferences → **Additional Boards Manager URLs**
 2. Tambahkan: `https://mcudude.github.io/MiniCore/package_MCUdude_MiniCore_index.json`
@@ -16,41 +22,65 @@
 
 ## Pin Mapping
 
-| Komponen | Pin Arduino | Port/IC Kaki |
+| Komponen | Pin Arduino | Port/IC |
 |---|---|---|
 | LED 1 | 12 | PB4 (kaki 18) |
 | LED 2 | 13 | PB5 (kaki 19) |
-| Push Button 1 (ke GND, INPUT_PULLUP) | 7 | PD7 (kaki 13) |
-| Push Button 2 (ke GND, INPUT_PULLUP) | 8 | PB0 (kaki 14) |
 | Serial TX | 1 | PD1 (kaki 3) |
 | Serial RX | 0 | PD0 (kaki 2) |
 
-## Protokol Serial (baud: 9600)
+## Protokol Serial
 
-### Dari Node.js ke Arduino (`\n` delimiter)
+**Baud rate:** 9600
+
+### TX: Node.js → Arduino (`\n` delimiter)
+
+Arduino membaca data dengan `Serial.readStringUntil('\n')`. Spasi di-trim.
 
 | Data | Fungsi |
 |---|---|
-| `1` | LED 1 ON |
-| `0` | LED 1 OFF |
+| `1` | LED 1 ON (`digitalWrite HIGH`) |
+| `0` | LED 1 OFF (`digitalWrite LOW`) |
 | `3` | LED 2 ON |
 | `2` | LED 2 OFF |
-| teks lain | Dicetak ke Serial Monitor (fitur chat) |
+| teks lain | **Echo** — dikirim balik ke Node.js via `Serial.println(cmd)` (fitur chat) |
 
-### Dari Arduino ke Node.js (`\r\n` delimiter)
+### RX: Arduino → Node.js (`\r\n` delimiter)
 
-| Data | Fungsi |
+| Data | Keterangan |
 |---|---|
-| `LED1:1` | Push button 1 ditekan (LED web ON) |
-| `LED1:0` | Push button 1 dilepas (LED web OFF) |
-| `LED2:1` | Push button 2 ditekan (LED web ON) |
-| `LED2:0` | Push button 2 dilepas (LED web OFF) |
-| `SYS:...` | Pesan sistem |
+| echo chat | Jika web mengirim teks, Arduino membalas dengan teks yang sama |
 
-## Catatan Proteus
+## Logika Program
 
-1. Atur COMPIM/COMPort ke **COM2** (sama dengan `app.js`)
-2. Baud rate COMPIM: **9600**
-3. Koneksi langsung ke kaki IC ATmega328P sesuai tabel Pin Mapping di atas
-4. Push button: sambungkan ke GND, gunakan pull-up internal (tidak perlu resistor eksternal)
-5. LED: sambungkan anoda ke pin Arduino via resistor 220Ω, katoda ke GND
+```cpp
+void loop() {
+    while (Serial.available() > 0) {
+        char c = Serial.read();
+        if (c == '\n') {
+            // proses command
+            execCommand(serialBuf);
+            serialBuf = "";
+        } else if (c != '\r' && serialBuf.length() < 64) {
+            serialBuf += c;
+        }
+    }
+}
+```
+
+- `\r` (CR) diabaikan agar kompatibel dengan berbagai terminal
+- Buffer dibatasi 64 karakter untuk mencegah overflow
+
+## Kompilasi & Upload
+
+### Ke board fisik
+
+1. Buka `main.ino` di Arduino IDE
+2. Pilih board (Arduino Uno / MiniCore sesuai setup)
+3. **Sketch → Upload**
+
+### Ke Proteus
+
+1. **Sketch → Export Compiled Binary**
+2. Load file `.hex` (tanpa bootloader) ke ATmega328P di Proteus
+3. Atur Clock Frequency ATmega328P ke **16 MHz**
