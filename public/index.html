@@ -5,40 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control LED | Node.JS</title>
     <link rel="stylesheet" href="style.css">
-    <!-- Tambahkan link font Ubuntu -->
     <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;700&display=swap" rel="stylesheet">
-    <!-- <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap" rel="stylesheet"> -->
 </head>
 <body>
-    <!-- Header Pindah ke Atas -->
     <header>
         <h1>LEDs Control</h1>
-        <h3>Microcontroller ATMega 328p | Controlled by Web-APP Node.JS</h3>
+        <h3>ATMega 328p &bull; Web-APP Node.JS</h3>
     </header>
 
-    <!-- Tambahkan Konten Utama -->
+    <div class="toolbar">
+        <div class="port-controls">
+            <input type="text" id="port-input" placeholder="COM port (contoh: COM3)" autocomplete="off">
+            <button id="port-connect">Connect</button>
+            <span id="port-status" class="status-dot disconnected"></span>
+        </div>
+    </div>
+
     <main>
-        <div class="buttons-container">
-            <button id="led1-toggle" data-status="off">
-                <img id="led1-icon" src="lamp off.png" alt="LED 1 Mati">
-                <span>LED 1 OFF</span>
-            </button>
-            <button id="led2-toggle" data-status="off">
-                <img id="led2-icon" src="lamp off.png" alt="LED 2 Mati">
-                <span>LED 2 OFF</span>
-            </button>
+        <div class="left-panel">
+            <div class="buttons-container">
+                <button id="led1-toggle" data-status="off" class="led-btn">
+                    <img id="led1-icon" src="lamp off.png" alt="LED 1 Mati">
+                    <span>LED 1 OFF</span>
+                </button>
+                <button id="led2-toggle" data-status="off" class="led-btn">
+                    <img id="led2-icon" src="lamp off.png" alt="LED 2 Mati">
+                    <span>LED 2 OFF</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="right-panel">
+            <div class="log-section">
+                <h3>Serial Log</h3>
+                <div class="log-window" id="log-window"></div>
+            </div>
+            <div class="chat-section">
+                <h3>Chat ke Serial Monitor</h3>
+                <div class="chat-input-area">
+                    <input type="text" id="chat-input" placeholder="Ketik pesan..." autocomplete="off">
+                    <button id="chat-send">Kirim</button>
+                </div>
+            </div>
         </div>
     </main>
 
-    <!-- Tambahkan Informasi Tambahan -->
     <footer>
-        <p>Made with ❤ by Muhammad Lutfi Nur Anendi</p>
-        <p>0623 3032 0678</p>
-        <p>3 ED</p>
+        <p>Muhammad Lutfi Nur Anendi &mdash; 0623 3032 0678 &mdash; 3 ED</p>
     </footer>
 
+    <script src="/socket.io/socket.io.js"></script>
     <script src="app.js"></script>
 </body>
 </html>

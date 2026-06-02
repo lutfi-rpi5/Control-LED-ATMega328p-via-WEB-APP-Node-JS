@@ -1,23 +1,58 @@
 # AGENTS.md
 
 ## Project overview
-Single-package Node.js Express server that controls 2 LEDs via serial port (Arduino). Frontend in `public/` uses plain HTML/CSS/JS with no framework.
+Single-package Node.js Express + Socket.IO server that controls 2 LEDs and reads 2 push buttons via serial port (Arduino/Proteus). Frontend in `public/` uses plain HTML/CSS/JS with Socket.IO client.
 
 ## Commands
 - `npm start` — not defined, run `node app.js` directly
 - No test/lint/typecheck/formatter configured
 
 ## Architecture
-- **Entrypoint:** `app.js` — Express server on port **3001** (not 3000)
+- **Entrypoint:** `app.js` — Express + HTTP + Socket.IO server on port **3001**
 - **Static files:** `public/` (index.html, app.js, style.css, lamp on/off.png)
-- **Serial:** `serialport` v12, COM2 @ 9600 baud, `ReadlineParser` delimiter `\r\n`
-- **API:**
-  - `GET /led1/toggle` — toggles LED1, sends `1` (on) or `0` (off)
-  - `GET /led2/toggle` — toggles LED2, sends `3` (on) or `2` (off)
-  - Both respond `{ status: boolean }`
+- **Serial:** `serialport` v12, baud 9600, `ReadlineParser` delimiter `\r\n`. Port dipilih dari frontend (tidak hardcoded)
+- **Real-time:** Socket.IO for bidirectional communication (log, chat, LED status)
 - **Module system:** CommonJS (`require`)
+
+## Dependencies
+- `express`, `serialport`, `@serialport/parser-readline`, `socket.io`
+
+## API & Events
+
+### HTTP (backward compat)
+  - `GET /led1/toggle` — toggles LED1, sends `1` (on) / `0` (off), returns `{ status: boolean }`
+  - `GET /led2/toggle` — toggles LED2, sends `3` (on) / `2` (off), returns `{ status: boolean }`
+
+### Socket.IO events
+
+| Event | Dir | Payload |
+|---|---|---|
+| `list-ports` | C→S | (no payload) |
+| `port-list` | S→C | `[{ path: string }]` |
+| `connect-port` | C→S | `{ path: string }` |
+| `disconnect-port` | C→S | (no payload) |
+| `connection-status` | S→C | `{ connected: bool, path?: string, error?: string }` |
+| `toggle-led` | C→S | `{ led: 1\|2 }` |
+| `send-chat` | C→S | `{ message: string }` |
+| `led-status` | S→C | `{ led: 1\|2, status: boolean }` (dari push button) |
+| `serial-data` | S→C | `{ direction: 'tx'\|'rx'\|'sys', time: string, data: string }` |
+| `toggle-result` | S→C | `{ led: 1\|2, status: boolean }` |
+
+### Serial protocol (`\n` TX, `\r\n` RX)
+
+| Arah | Data | Arti |
+|---|---|---|
+| TX | `1` / `0` | LED1 ON/OFF |
+| TX | `3` / `2` | LED2 ON/OFF |
+| TX | teks | Chat ke Serial Monitor Arduino |
+| RX | `LED1:1`/`LED1:0` | Push button 1 ditekan/dilepas |
+| RX | `LED2:1`/`LED2:0` | Push button 2 ditekan/dilepas |
+| RX | `SYS:...` | System message |
 
 ## Quirks
 - `app2.md` is misnamed — contains an older JS version of the server (not markdown)
-- Serial port path (`COM2`) is hardcoded in `app.js:7` and must be changed per platform
-- Frontend uses `fetch` with `.json()` — endpoints must return JSON
+- Serial port path is NOT hardcoded — user types port name in text field (auto-diupper-case + trim spasi), communicates via `connect-port`/`disconnect-port` socket events
+- Frontend toggles use Socket.IO `toggle-led`, NOT the HTTP endpoints (those exist for API compat only, return 503 if serial not connected)
+- Push buttons use INPUT_PULLUP — pressed = LOW = `LEDx:1`
+- Arduino program lives in `main/main.ino` (documentation in `main/README.md`)
+- `led-status` events from push buttons are separate from `toggle-result` events from web toggles
